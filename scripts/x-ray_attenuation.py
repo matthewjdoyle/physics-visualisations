@@ -4,6 +4,18 @@ from matplotlib.widgets import Slider, Button
 from mpl_toolkits.mplot3d import Axes3D
 from skimage import measure
 
+"""
+Notes
+-----
+
+Make the opacity of polygons dependent on the intensity of the X-ray beam at the depth of the target, 
+also show the incident beam direction with a single arrow. 
+
+Add a second polygon mesh with a constant attenuation (so it only responds to intensity and voltage sliders)
+
+Check and compare my equations with those used in A-level textbook / datasheet. 
+"""
+
 # -----------------------------
 # Simulation Parameters
 # -----------------------------
@@ -19,7 +31,6 @@ x = np.linspace(0, thickness_max, 200)
 # Effective attenuation: initially, voltage is set to 100, so effective μ = mu_base.
 I = I0 * np.exp(-mu_base * x)  # Beer–Lambert law: I = I0 * exp(-μx)
 
-# Initialize TEXT_POSITION at the top of your script
 TEXT_POSITION = 10
 
 # -----------------------------
@@ -34,6 +45,9 @@ ax1.set_facecolor('#1C1C1C')  # Match background color
 ax2 = fig.add_subplot(122, projection='3d')  # Right subplot for target
 ax2.set_facecolor('#1C1C1C')  # Match background color
 plt.subplots_adjust(bottom=0.35, wspace=0.3)
+
+ax1.set_xlim(0, thickness_max)
+ax1.set_ylim(0, I0)
 
 # Display initial text info
 info_text = ax1.text(0.98, 0.95, f"I₀ = {I0}\nμ₍eff₎ = {mu_base:.2f} cm⁻¹\nTube Voltage = 100 kVp", 
@@ -135,8 +149,6 @@ def update(val):
     
     l.set_xdata(x)
     l.set_ydata(I)
-    ax1.set_xlim(0, tmax)
-    ax1.set_ylim(0, 1500 * 1.05)
     
     # Update info text with current parameters and effective μ
     info_text.set_text(f"I₀ = {I0}\nμ₍eff₎ = {mu_eff:.2f} cm⁻¹\nTube Voltage = {voltage} kVp")
@@ -159,8 +171,8 @@ add_line_button.label.set_color(text_color)
 def add_fixed_line(event):
     current_x = l.get_xdata()
     current_y = l.get_ydata()
-    color = np.random.rand(3,)  # Generate a random color
-    ax1.plot(current_x, current_y, lw=2, color=color)
+    line_color = np.random.rand(3,)  # Generate a random color
+    ax1.plot(current_x, current_y, lw=1, color=line_color)
 
     # Retrieve current parameters
     mu_val = mu_slider.val
@@ -181,7 +193,7 @@ def add_fixed_line(event):
 
     # Add text annotation near the end of the line
     label = f"I₀ = {I0}, μ = {mu_val:.2f}, V = {voltage} kVp"
-    ax1.text(text_x, text_y, label, color=color, verticalalignment='bottom', fontsize=8)
+    ax1.text(text_x, text_y, label, color=line_color, verticalalignment='bottom', fontsize=8)
 
     fig.canvas.draw_idle()
 
@@ -197,7 +209,6 @@ l, = ax1.plot(x, I, lw=2, color='blue')
 ax1.set_xlabel('Tissue Thickness (cm)', color='white')
 ax1.set_ylabel('Transmitted Intensity', color='white')
 ax1.set_title('X-ray Attenuation in Tissue', color='white')
-ax1.grid(True, color='white', alpha=0.3)
 
 # Initialize target visualization
 update_target_plot(100, I0)
