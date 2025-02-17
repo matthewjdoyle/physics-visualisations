@@ -8,6 +8,8 @@ Download the .exe file in the Application Folder for the physics simulation you 
 
 Then, simply run the .exe file on your computer.
 
+Otherwise, you could simply run the Python scripts (requires standard anaconda packages)
+
 ## List of scripts
 
 - ideal_gas_2d.py
