@@ -16,3 +16,4 @@ Otherwise, you could simply run the Python scripts (requires standard anaconda p
   
 - ideal_gas_3d.py
 
+- x_ray_attenuation.py
