@@ -154,7 +154,7 @@ reset_button.label.set_color(text_color)
 # -----------------------------
 # Text Annotation Styling
 # -----------------------------
-ax_annotation = fig.add_axes([0.77, 0.15, 0.20, 0.75])
+ax_annotation = fig.add_axes([0.65, 0.15, 0.20, 0.75])
 ax_annotation.axis('off')
 ax_annotation.patch.set_facecolor('#1C1C1C')
 annotation_text = (
