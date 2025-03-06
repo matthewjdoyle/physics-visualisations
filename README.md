@@ -1,10 +1,6 @@
 # physics-visualisations
 
-<<<<<<< Updated upstream
 ![Physics Visualisations Banner](Banner_t.gif)
-=======
-![Physics Visualisations Banner](banner_t.gif)
->>>>>>> Stashed changes
 
 Created by Matthew J. Doyle.
 
