@@ -8,12 +8,6 @@ from skimage import measure
 Notes
 -----
 
-Make the opacity of polygons dependent on the intensity of the X-ray beam at the depth of the target, 
-also show the incident beam direction with a single arrow. 
-
-Add a second polygon mesh with a constant attenuation (so it only responds to intensity and voltage sliders)
-
-Check and compare my equations with those used in A-level textbook / datasheet. 
 """
 
 # -----------------------------
@@ -90,7 +84,7 @@ def beam_profile(x,y,z):
 
 def create_synthetic_volume(voltage, I0):
     # Create a synthetic 3D volume with varying densities
-    size = 50
+    size = 60
     volume = np.zeros((size, size, size))
 
     # Simulate a spherical object in the center
@@ -108,18 +102,55 @@ def create_synthetic_volume(voltage, I0):
     
     return volume
 
-def update_target_plot(voltage, I0):
+def create_fixed_volume(voltage, I0):
+    # Create a synthetic 3D volume with fixed density (for the underlying object)
+    size = 50
+    volume = np.zeros((size, size, size))
+
+    center = 30
+    radius = size // 4
+
+    
+    for x in range(size):
+        for y in range(size):
+            for z in range(size):
+                if (x - center)**2 + (y - center)**2 + (z - center)**2 < radius**2:
+                    volume[x, y, z] = 1  # Assign a density value
+                    volume[x,y,z] -= beam_profile(x,y,z)
+    # Adjust the volume based on intensity and voltage (like the main object)
+    # but with a fixed attenuation coefficient
+    volume *= (voltage / 50) * (I0 / 1000)
+    
+    return volume
+
+def update_target_plot(voltage, I0, mu_eff):
     ax2.clear()
     
-    # Create a synthetic volume
+    # Create a synthetic volume for the main object
     volume = create_synthetic_volume(voltage, I0)
     
+    # Create a fixed volume for the underlying object, passing intensity and voltage
+    fixed_volume = create_fixed_volume(voltage, I0)
+    
+    # Calculate opacity based on attenuation coefficient
+    # Higher attenuation = lower opacity (as X-rays are more attenuated)
+    opacity_main = max(0.2, 1.0 - mu_eff * 0.8)  # Scale opacity inversely with attenuation
+    
     try:
+        # Render the fixed object first (always visible with constant opacity)
+        verts_fixed, faces_fixed, _, _ = measure.marching_cubes(fixed_volume, level=0.4)
+        ax2.plot_trisurf(verts_fixed[:, 0], verts_fixed[:, 1], faces_fixed, verts_fixed[:, 2],
+                         cmap='viridis', lw=0.5, alpha=0.6)  # Fixed opacity
+        
+        # Render the main object with variable opacity
         verts, faces, _, _ = measure.marching_cubes(volume, level=0.5)
         ax2.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2],
-                         cmap='plasma', lw=1, alpha=0.8)  # Use plasma colormap for better contrast
+                         cmap='plasma', lw=1, alpha=opacity_main)
     except:
         ax2.text(0,0,0, "No visible target", color='red', fontsize=12)
+    
+    # Add an arrow to show incident beam direction
+    # ax2.quiver(0, 0, 30, 0, 0, -20, color='cyan', arrow_length_ratio=0.1, linewidth=2)
     
     # Annotations and labels
     ax2.set_xlabel('X', color='white')
@@ -153,8 +184,8 @@ def update(val):
     # Update info text with current parameters and effective μ
     info_text.set_text(f"I₀ = {I0}\nμ₍eff₎ = {mu_eff:.2f} cm⁻¹\nTube Voltage = {voltage} kVp")
     
-    # Update target visualization
-    update_target_plot(voltage, I0)
+    # Update target visualization with the effective attenuation coefficient
+    update_target_plot(voltage, I0, mu_eff)
     
     fig.canvas.draw_idle()
 
@@ -211,14 +242,14 @@ ax1.set_ylabel('Transmitted Intensity', color='white')
 ax1.set_title('X-ray Attenuation in Tissue', color='white')
 
 # Initialize target visualization
-update_target_plot(100, I0)
+update_target_plot(100, I0, mu_base)
 
 def reset(event):
     mu_slider.reset()
     voltage_slider.reset()
     I0_slider.reset()
     ax2.clear()
-    update_target_plot(100, I0)
+    update_target_plot(100, I0, mu_base)
     
 
 reset_button.on_clicked(reset)
