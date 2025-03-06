@@ -1,6 +1,6 @@
 # physics-visualisations
 
-![Physics Visualisations Banner](banner_t.gif)
+![Physics Visualisations Banner](Banner_t.gif)
 
 Created by Matthew J. Doyle.
 
