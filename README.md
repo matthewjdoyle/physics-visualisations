@@ -40,17 +40,14 @@ To run the simulations from source:
 
 ## Simulations
 
-### Ideal Gas Simulations
 
 - **ideal_gas_2d.py**: An interactive 2D simulation of an ideal gas in a container. Visualises particle motion, collisions, and thermodynamic properties. Features adjustable parameters for temperature, volume, and particle count to demonstrate gas laws.
   
 - **ideal_gas_3d.py**: A 3D extension of the ideal gas simulation, showing particles moving and colliding in a cubic container. Includes interactive controls to modify simulation parameters and observe how changes affect the system's behavior.
 
-### X-Ray Physics
-
 - **x_ray_attenuation.py**: Simulates X-ray attenuation through different materials and densities. Visualises how X-ray intensity changes as it passes through matter, with adjustable parameters for voltage and initial intensity. Includes 3D visualisation of an X-ray target.
 
-### Visualization Tools
+## Other scripts
 
 - **banner.py**: Creates an animated MP4 banner (shown at the top of this file) featuring four different physics simulations: a double pendulum system, an N-body gravity simulation, wave propagation patterns, and a Lorenz attractor.
 
