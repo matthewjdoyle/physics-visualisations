@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, FFMpegWriter
+from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.gridspec as gridspec
 from scipy.integrate import solve_ivp
@@ -24,8 +24,8 @@ ax2 = fig.add_subplot(gs[0, 1], projection='3d')  # N-body simulation
 ax3 = fig.add_subplot(gs[0, 2], projection='3d')  # Wave equation
 ax4 = fig.add_subplot(gs[0, 3], projection='3d')  # Lorenz attractor
 
-# Adjust the spacing between subplots
-plt.subplots_adjust(wspace=0.3, hspace=0.3)
+# Adjust the spacing between subplots and remove padding
+plt.subplots_adjust(wspace=0.0, hspace=0.0, left=0.01, right=0.99, bottom=0.01, top=0.99)
 
 # Set background color for all subplots
 for ax in [ax1, ax2, ax3, ax4]:
@@ -264,7 +264,7 @@ def animate(frame):
     dp_trace_z.append(z2[dp_idx])
     
     # Keep only the last 50 points for the trace
-    if len(dp_trace_x) > 50:
+    if len(dp_trace_x) > 200:
         dp_trace_x.pop(0)
         dp_trace_y.pop(0)
         dp_trace_z.pop(0)
@@ -298,7 +298,7 @@ def animate(frame):
     # Remove old surface and create a new one
     for coll in ax3.collections:
         coll.remove()
-    wave_surf = ax3.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8, 
+    wave_surf = ax3.plot_surface(X, Y, Z, cmap='plasma', alpha=0.8, 
                                 linewidth=0, antialiased=True)
     
     # 4. Update Lorenz Attractor
@@ -312,10 +312,10 @@ def animate(frame):
                             [z_lorenz[lorenz_idx]])
     
     # Rotate the view for each subplot
-    ax1.view_init(elev=-70, azim=frame % 360)
-    ax2.view_init(elev=20, azim=(frame % 360) / 2)
-    ax3.view_init(elev=50, azim=frame % 360)
-    ax4.view_init(elev=30, azim=(frame % 360) / 3)
+    ax1.view_init(elev=70)
+    ax2.view_init(elev=20, azim=(frame % 360) )
+    ax3.view_init(elev=20, azim=frame % 360)
+    ax4.view_init(elev=30, azim=(frame % 360) )
     
     return (dp_line, dp_trace, *nbody_points, *nbody_trails, 
             wave_surf, lorenz_line, lorenz_point)
@@ -324,14 +324,154 @@ def animate(frame):
 frames = 300  # 10 seconds at 30 fps
 ani = FuncAnimation(fig, animate, frames=frames, interval=33.33, blit=False)
 
-# Set up the writer
-writer = FFMpegWriter(fps=30, metadata=dict(artist='Physics Visualizations'), 
+# Set up the MP4 writer
+writer_mp4 = FFMpegWriter(fps=30, metadata=dict(artist='Physics Visualizations'), 
                      bitrate=5000)
 
-# Save the animation
-print("Rendering animation... This may take a while.")
-ani.save('physics_banner.mp4', writer=writer)
-print("Animation saved as 'physics_banner.mp4'")
+# Save the MP4 animation
+print("Rendering MP4 animation... This may take a while.")
+ani.save('physics_banner.mp4', writer=writer_mp4)
+print("MP4 animation saved as 'physics_banner.mp4'")
+
+# Create a separate figure with transparent background for GIF
+print("Creating transparent GIF... This may take a while.")
+fig_transparent = plt.figure(figsize=(14, 4), dpi=300)
+fig_transparent.patch.set_alpha(0.0)  # Set figure background to transparent
+gs_transparent = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1, 1])
+
+# Set up the 4 subplots for the transparent figure
+ax1_t = fig_transparent.add_subplot(gs_transparent[0, 0], projection='3d')
+ax2_t = fig_transparent.add_subplot(gs_transparent[0, 1], projection='3d')
+ax3_t = fig_transparent.add_subplot(gs_transparent[0, 2], projection='3d')
+ax4_t = fig_transparent.add_subplot(gs_transparent[0, 3], projection='3d')
+
+# Adjust the spacing between subplots and remove padding
+plt.subplots_adjust(wspace=0.0, hspace=0.0, left=0.01, right=0.99, bottom=0.01, top=0.99)
+
+# Set transparent background for all subplots
+for ax in [ax1_t, ax2_t, ax3_t, ax4_t]:
+    ax.set_facecolor((0, 0, 0, 0))  # Transparent background
+    ax.xaxis.pane.fill = False
+    ax.yaxis.pane.fill = False
+    ax.zaxis.pane.fill = False
+    
+    # Set pane edge colors to be transparent
+    ax.xaxis.pane.set_edgecolor('w')
+    ax.yaxis.pane.set_edgecolor('w')
+    ax.zaxis.pane.set_edgecolor('w')
+    
+    ax.xaxis.pane.set_alpha(0.0)
+    ax.yaxis.pane.set_alpha(0.0)
+    ax.zaxis.pane.set_alpha(0.0)
+    ax.grid(False)
+    
+    # Remove axis lines and ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_zticks([])
+    
+    # Make the axis lines invisible
+    ax.xaxis.line.set_color((1.0, 1.0, 1.0, 0.0))
+    ax.yaxis.line.set_color((1.0, 1.0, 1.0, 0.0))
+    ax.zaxis.line.set_color((1.0, 1.0, 1.0, 0.0))
+    
+    # Hide the spines
+    ax.xaxis._axinfo['axisline']['linewidth'] = 0
+    ax.yaxis._axinfo['axisline']['linewidth'] = 0
+    ax.zaxis._axinfo['axisline']['linewidth'] = 0
+    ax.xaxis._axinfo['grid']['linewidth'] = 0
+    ax.yaxis._axinfo['grid']['linewidth'] = 0
+    ax.zaxis._axinfo['grid']['linewidth'] = 0
+
+# Copy the axis limits and aspect ratios from the original figure
+ax1_t.set_xlim(ax1.get_xlim())
+ax1_t.set_ylim(ax1.get_ylim())
+ax1_t.set_zlim(ax1.get_zlim())
+ax1_t.set_box_aspect(ax1.get_box_aspect())
+
+ax2_t.set_xlim(ax2.get_xlim())
+ax2_t.set_ylim(ax2.get_ylim())
+ax2_t.set_zlim(ax2.get_zlim())
+ax2_t.set_box_aspect(ax2.get_box_aspect())
+
+ax3_t.set_xlim(ax3.get_xlim())
+ax3_t.set_ylim(ax3.get_ylim())
+ax3_t.set_zlim(ax3.get_zlim())
+ax3_t.set_box_aspect(ax3.get_box_aspect())
+
+ax4_t.set_xlim(ax4.get_xlim())
+ax4_t.set_ylim(ax4.get_ylim())
+ax4_t.set_zlim(ax4.get_zlim())
+ax4_t.set_box_aspect(ax4.get_box_aspect())
+
+# Define a modified animation function for transparent background
+def animate_transparent(frame):
+    # 1. Update Double Pendulum
+    dp_idx = frame % len(x1)
+    dp_line_t, = ax1_t.plot([0, x1[dp_idx], x2[dp_idx]], [0, y1[dp_idx], y2[dp_idx]], [0, z1[dp_idx], z2[dp_idx]], 
+                          'o-', lw=2, markersize=8, color='cyan')
+    
+    # Add trace points
+    trace_idx = max(0, dp_idx - 50)
+    dp_trace_t, = ax1_t.plot(x2[trace_idx:dp_idx], y2[trace_idx:dp_idx], z2[trace_idx:dp_idx], 
+                           '-', lw=1, alpha=0.3, color='cyan')
+    
+    # 2. N-Body Simulation
+    nbody_points_t = []
+    nbody_trails_t = []
+    
+    for i, body in enumerate(bodies):
+        # Update positions for consistency with the main animation
+        if frame > 0:  # Skip for first frame to avoid duplicating updates
+            for _ in range(5):
+                update_nbody(bodies)
+        
+        point_t, = ax2_t.plot([body.position[0]], [body.position[1]], [body.position[2]], 
+                            'o', markersize=30*body.mass, color=body.color)
+        nbody_points_t.append(point_t)
+        
+        if body.trajectory:
+            trail_x = [pos[0] for pos in body.trajectory]
+            trail_y = [pos[1] for pos in body.trajectory]
+            trail_z = [pos[2] for pos in body.trajectory]
+            trail_t, = ax2_t.plot(trail_x, trail_y, trail_z, 
+                                '-', linewidth=3, alpha=0.6, color=body.color)
+            nbody_trails_t.append(trail_t)
+    
+    # 3. Wave Simulation
+    Z_t = 0.5 * np.sin(np.sqrt(X**2 + Y**2) - wave_speed * (time + frame * dt_wave))
+    Z_t += 0.3 * np.sin(np.sqrt((X-1)**2 + (Y+1)**2) - wave_speed * (time + frame * dt_wave) * 1.5)
+    
+    wave_surf_t = ax3_t.plot_surface(X, Y, Z_t, cmap='plasma', alpha=0.8, 
+                                   linewidth=0, antialiased=True)
+    
+    # 4. Update Lorenz Attractor
+    lorenz_idx = (frame * 3) % len(x_lorenz)
+    end_idx = min(lorenz_idx + 100, len(x_lorenz))
+    lorenz_line_t, = ax4_t.plot(x_lorenz[lorenz_idx:end_idx], 
+                              y_lorenz[lorenz_idx:end_idx], 
+                              z_lorenz[lorenz_idx:end_idx], 
+                              '-', lw=1, color='magenta')
+    lorenz_point_t, = ax4_t.plot([x_lorenz[lorenz_idx]], 
+                               [y_lorenz[lorenz_idx]], 
+                               [z_lorenz[lorenz_idx]], 
+                               'o', markersize=6, color='white')
+    
+    # Rotate the view for each subplot
+    ax1_t.view_init(elev=70)
+    ax2_t.view_init(elev=20, azim=(frame % 360) / 2)
+    ax3_t.view_init(elev=20, azim=frame % 360)
+    ax4_t.view_init(elev=30, azim=(frame % 360))
+    
+    return [dp_line_t, dp_trace_t, *nbody_points_t, *nbody_trails_t, 
+            wave_surf_t, lorenz_line_t, lorenz_point_t]
+
+# Create transparent animation with fewer frames for GIF
+frames_gif = 60  # Fewer frames for GIF to reduce file size
+ani_transparent = FuncAnimation(fig_transparent, animate_transparent, 
+                              frames=frames_gif, interval=33.33, blit=True)
+
+
 
 # Uncomment to display the animation in a notebook
 # from IPython.display import HTML
