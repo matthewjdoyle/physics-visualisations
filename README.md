@@ -49,8 +49,6 @@ To run the simulations from source:
 
 - **x_ray_attenuation.py**: Simulates X-ray attenuation through different materials and densities. Visualises how X-ray intensity changes as it passes through matter, with adjustable parameters for voltage and initial intensity. Includes 3D visualisation of an X-ray target.
 
-## Other scripts
-
 ### Medical Physics
 
 - **x_ray_attenuation.py**: Simulates X-ray attenuation through different materials and densities. Visualises how X-ray intensity changes as it passes through matter, with adjustable parameters for voltage and initial intensity. Includes 3D visualisation of an X-ray target.
